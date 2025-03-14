@@ -8,7 +8,12 @@ section {
 .navbar-section {
     background-color: rgb(209, 251, 237);
 }
-.main-section {
+
+.header-section {
+    background-color: rgb(209, 251, 237);
+}
+
+.body-section {
     background-color: rgb(209, 251, 237);
 }
 .footer-section {
