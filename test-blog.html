@@ -53,6 +53,21 @@
     </div>
     <!-- Body text ends -->
 
+    <!-- Blog posts start -->
+
+    <div class="container">
+
+        <section class="blog-section">
+
+            <div id="blog-posts"></div>
+
+        </section>
+
+    </div>
+
+    <!-- Blog posts end -->
+
+
     <!-- Footer starts -->
     <div class="container">
         <section class="footer-section">
@@ -64,7 +79,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"
         onerror="this.onerror=null;this.src='js/bootstrap.bundle.min.js';">
-    </script>
+        </script>
     <script>
         //Load navbar
         fetch('navbar.html')
@@ -78,6 +93,40 @@
             .then(data => {
                 document.getElementById('footer').innerHTML = data;
             });
+
+        // Fetch and display Blogger posts from JSON file
+
+        fetch('blog-posts.json')
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                const posts = data.items;
+
+                let html = '';
+
+                posts.forEach(post => {
+
+                    html += `
+
+            <div class="blog-post">
+
+                <h2>${post.title}</h2>
+
+                <p>${post.content}</p>
+
+            </div>
+
+        `;
+
+                });
+
+                document.getElementById('blog-posts').innerHTML = html;
+
+            })
+
+            .catch(error => console.error('Error fetching Blogger posts:', error));
     </script>
 </body>
 
