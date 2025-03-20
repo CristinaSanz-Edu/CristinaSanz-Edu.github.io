@@ -94,23 +94,45 @@
                 document.getElementById('footer').innerHTML = data;
             });
 
-        // Fetch and display Blogger posts from JSON file
-        fetch('blog-posts.json')
-            .then(response => response.json())
+        // Fetch and display Blogger posts from RSS feed with caching
+    const cacheKey = 'blogPostsCache';
+    const cacheExpiry = 60 * 60 * 1000; // 1 hour
+
+    function fetchAndDisplayBlogPosts() {
+        fetch('https://equilibriobycris.blogspot.com/feeds/posts/default?alt=rss')
+            .then(response => response.text())
+            .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
             .then(data => {
-                const posts = data.items;
+                const items = data.querySelectorAll("item");
                 let html = '';
-                posts.forEach(post => {
+                items.forEach(el => {
+                    const title = el.querySelector("title").textContent;
+                    const description = el.querySelector("description").textContent;
+                    const content = el.querySelector("content\\:encoded") ? el.querySelector("content\\:encoded").textContent : '';
+                    const imgSrc = content.match(/<img[^>]+src="([^">]+)"/) ? content.match(/<img[^>]+src="([^">]+)"/)[1] : '';
+                    const videoSrc = content.match(/<iframe[^>]+src="([^">]+)"/) ? content.match(/<iframe[^>]+src="([^">]+)"/)[1] : '';
+
                     html += `
-            <div class="blog-post">
-                <h2>${post.title}</h2>
-                <p>${post.content}</p>
-            </div>
-        `;
+                        <div class="blog-post">
+                            <h2>${title}</h2>
+                            ${imgSrc ? `<img src="${imgSrc}" alt="${title}" class="img-fluid">` : ''}
+                            ${videoSrc ? `<iframe src="${videoSrc}" frameborder="0" allowfullscreen class="img-fluid"></iframe>` : ''}
+                            <p>${description}</p>
+                        </div>
+                    `;
                 });
                 document.getElementById('blog-posts').innerHTML = html;
+                localStorage.setItem(cacheKey, JSON.stringify({ html, timestamp: Date.now() }));
             })
             .catch(error => console.error('Error fetching Blogger posts:', error));
+    }
+
+    const cachedData = JSON.parse(localStorage.getItem(cacheKey));
+    if (cachedData && (Date.now() - cachedData.timestamp < cacheExpiry)) {
+        document.getElementById('blog-posts').innerHTML = cachedData.html;
+    } else {
+        fetchAndDisplayBlogPosts();
+    }
     </script>
 </body>
 
