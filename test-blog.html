@@ -29,7 +29,7 @@
         <section class="header-section">
             <div class="row mt-1 p-1 justify-content-center">
                 <div class="col">
-                    <h1>Test Blog</h1>
+                    <h1>Test Blog4</h1>
                 </div>
             </div>
         </section>
@@ -92,7 +92,7 @@
         const cacheExpiry = 60 * 60 * 1000; // 1 hour
 
         function fetchAndDisplayBlogPosts() {
-            fetch('https://cwl2skntfk.execute-api.us-east-1.amazonaws.com') // Replace with your actual Invoke URL
+            fetch('https://cwl2skntfk.execute-api.us-east-1.amazonaws.com/fetchRSS') // Replace with your actual Invoke URL
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
