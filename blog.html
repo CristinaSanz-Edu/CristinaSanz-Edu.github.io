@@ -29,7 +29,7 @@
         <section class="header-section">
             <div class="row mt-1 p-1 justify-content-center">
                 <div class="col">
-                    <h1>Test Blog640</h1>
+                    <h1>Test Blog707</h1>
                 </div>
             </div>
         </section>
@@ -74,6 +74,9 @@
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const cacheKey = 'blogPostsCache';
+            const cacheExpiry = 60 * 60 * 1000; // 1 hour
+
             // Load navbar
             fetch('navbar.html')
                 .then(response => response.text())
@@ -137,4 +140,4 @@
     </script>
 </body>
 
-</html>
+</html
