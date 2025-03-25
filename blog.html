@@ -29,7 +29,7 @@
         <section class="header-section">
             <div class="row mt-1 p-1 justify-content-center">
                 <div class="col">
-                    <h1>Test Blog1115</h1>
+                    <h1>Test Blog</h1>
                 </div>
             </div>
         </section>
@@ -73,39 +73,70 @@
         onerror="this.onerror=null;this.src='js/bootstrap.bundle.min.js';">
     </script>
     <script>
-        async function fetchRSSFeed() {
-            const rssFeedUrl = 'https://equilibriobycris.blogspot.com/feeds/posts/default?alt=rss';
-            try {
-                const response = await fetch(rssFeedUrl);
-                const rssText = await response.text();
-                const parser = new DOMParser();
-                const rssDoc = parser.parseFromString(rssText, 'application/xml');
-                displayPosts(rssDoc);
-            } catch (error) {
-                console.error('Error fetching RSS feed:', error);
+        document.addEventListener("DOMContentLoaded", function () {
+            const cacheKey = 'blogPostsCache';
+            const cacheExpiry = 60 * 60 * 1000; // 1 hour
+
+            // Load navbar
+            fetch('navbar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('navbar').innerHTML = data;
+                });
+
+            // Load footer
+            fetch('footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('footer').innerHTML = data;
+                });
+
+            // Fetch and display Blogger posts from the serverless function
+            function fetchAndDisplayBlogPosts() {
+                fetch('https://cwl2skntfk.execute-api.us-east-1.amazonaws.com/default/fetchRSS')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(str => {
+                        console.log('RSS Feed fetched successfully');
+                        return new window.DOMParser().parseFromString(str, "text/xml");
+                    })
+                    .then(data => {
+                        console.log('RSS Feed parsed successfully');
+                        const items = data.querySelectorAll("item");
+                        let html = '';
+                        items.forEach(el => {
+                            const title = el.querySelector("title").textContent;
+                            const description = el.querySelector("description").textContent;
+                            const content = el.querySelector("content\\:encoded") ? el.querySelector("content\\:encoded").textContent : '';
+                            const imgSrc = content.match(/<img[^>]+src="([^">]+)"/) ? content.match(/<img[^>]+src="([^">]+)"/)[1] : '';
+                            const videoSrc = content.match(/<iframe[^>]+src="([^">]+)"/) ? content.match(/<iframe[^>]+src="([^">]+)"/)[1] : '';
+
+                            html += `
+                                <div class="blog-post">
+                                    <h2>${title}</h2>
+                                    ${imgSrc ? `<img src="${imgSrc}" alt="${title}" class="img-fluid">` : ''}
+                                    ${videoSrc ? `<iframe src="${videoSrc}" frameborder="0" allowfullscreen class="img-fluid"></iframe>` : ''}
+                                    <p>${description}</p>
+                                </div>
+                            `;
+                        });
+                        document.getElementById('blog-posts').innerHTML = html;
+                        localStorage.setItem(cacheKey, JSON.stringify({ html, timestamp: Date.now() }));
+                    })
+                    .catch(error => console.error('Error fetching Blogger posts:', error));
             }
-        }
 
-        function displayPosts(rssDoc) {
-            const items = rssDoc.querySelectorAll('item');
-            const blogPostsContainer = document.getElementById('blog-posts');
-            blogPostsContainer.innerHTML = '';
-
-            items.forEach(item => {
-                const title = item.querySelector('title').textContent;
-                const link = item.querySelector('link').textContent;
-                const description = item.querySelector('description').textContent;
-
-                const postElement = document.createElement('div');
-                postElement.innerHTML = `
-                    <h2><a href="${link}">${title}</a></h2>
-                    <p>${description}</p>
-                `;
-                blogPostsContainer.appendChild(postElement);
-            });
-        }
-
-        fetchRSSFeed();
+            const cachedData = JSON.parse(localStorage.getItem(cacheKey));
+            if (cachedData && (Date.now() - cachedData.timestamp < cacheExpiry)) {
+                document.getElementById('blog-posts').innerHTML = cachedData.html;
+            } else {
+                fetchAndDisplayBlogPosts();
+            }
+        });
     </script>
 </body>
 
